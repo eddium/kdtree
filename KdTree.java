@@ -135,8 +135,8 @@ public class KdTree {
     }
 
     private void drawNode(Node x, RectHV range) {
-        StdDraw.setPenRadius(.001);
 
+        StdDraw.setPenRadius(.001);
         if (x.isVertical) {
             StdDraw.setPenColor(StdDraw.RED);
             StdDraw.line(x.p.x(), range.ymin(), x.p.x(), range.ymax());
@@ -208,7 +208,7 @@ public class KdTree {
         } else {
             champion = nearest(x.rt, p, champion, RT);
             if (LB.distanceSquaredTo(p) <= minDistance)
-                champion = nearest(x.rt, p, champion, RT);
+                champion = nearest(x.lb, p, champion, LB);
         }
 
         return champion;
