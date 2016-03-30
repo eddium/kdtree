@@ -1,8 +1,4 @@
-import edu.princeton.cs.algs4.Point2D;
-import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.SET;
-import edu.princeton.cs.algs4.StdDraw;
-import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.*;
 
 public class PointSET {
     private SET<Point2D> points;
@@ -58,7 +54,7 @@ public class PointSET {
         for (Point2D p : points) {
             double px = p.x();
             double py = p.y();
-            if (px > xmin && px < xmax && py > ymin && py < ymax)
+            if (px >= xmin && px <= xmax && py >= ymin && py <= ymax)
                 near.push(p);
         }
         return near;
@@ -81,6 +77,7 @@ public class PointSET {
                 champion = k;
             }
         }
+        BST a = new BST();
         return champion;
     }
 

@@ -1,7 +1,4 @@
-import edu.princeton.cs.algs4.Point2D;
-import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.SET;
-import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.*;
 
 public class KdTree {
 
@@ -11,16 +8,11 @@ public class KdTree {
         private Node rt;        // the right/top subtree
         private boolean isVertical;
 
-        Node(Point2D p) {
-            this.p = p;
-        }
-
         Node(Point2D p, boolean isVertical) {
-            this(p);
+            this.p = p;
             this.isVertical = isVertical;
         }
     }
-
 
     private int N;
     private Node sentinel;
@@ -166,19 +158,20 @@ public class KdTree {
     private boolean lieInRect(Node x, RectHV rect) {
         double px = x.p.x();
         double py = x.p.y();
-        return px >= rect.xmin() &&  py>= rect.ymin() && px <= rect.xmax() && py <= rect.ymax();
+        return px >= rect.xmin() && py >= rect.ymin() && px <= rect.xmax() && py <= rect.ymax();
     }
 
     public Point2D nearest(Point2D p)                 // a nearest neighbor in the set to point p; null if the set is empty
     {
         verify(p);
-        return nearest(root, p, Double.MAX_VALUE, null);  // nearest point is null before recursion
+        return nearest(root, p, new Point2D(Double.MAX_VALUE, Double.MAX_VALUE));  // nearest point is null before recursion
     }
 
-    private Point2D nearest(Node x, Point2D p, double minDistance, Point2D champion) {
+    private Point2D nearest(Node x, Point2D p, Point2D champion) {
         if (x == null)
             return champion;
 
+        double minDistance = x.p.distanceSquaredTo(champion);
         double distanceSquared = x.p.distanceSquaredTo(p);
         if (distanceSquared < minDistance) {
             minDistance = distanceSquared;
@@ -186,24 +179,28 @@ public class KdTree {
         }
 
         double cmp;
+        double thisX = x.p.x();
+        double thisY = x.p.y();
+        double queryX = p.x();
+        double queryY = p.y();
         if (x.isVertical)
-            cmp = x.p.x() - p.x();
+            cmp = thisX - queryX;
         else
-            cmp = x.p.y() - p.y();
+            cmp = thisY - queryY;
 
         if (cmp > 0) {
-            champion = nearest(x.lb, p, minDistance, champion);
+            champion = nearest(x.lb, p, champion);
             //  pruning rule
-            if (x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(x.p.x(), p.y()))
-                    || !x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(p.x(), x.p.y()))) {
-                champion = nearest(x.rt, p, minDistance, champion);
+            if (x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(thisX, queryY))
+                    || !x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(queryX, thisY))) {
+                champion = nearest(x.rt, p, champion);
             }
         } else {
-            champion = nearest(x.rt, p, minDistance, champion);
+            champion = nearest(x.rt, p, champion);
             //  pruning rule
-            if (x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(x.p.x(), p.y()))
-                    || !x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(p.x(), x.p.y()))) {
-                champion = nearest(x.lb, p, minDistance, champion);
+            if (x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(thisX, queryY))
+                    || !x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(queryX, thisY))) {
+                champion = nearest(x.lb, p, champion);
             }
         }
 
@@ -224,8 +221,9 @@ public class KdTree {
         kd.insert(new Point2D(1.1736142330170032, 1.2246971665753188));
         kd.insert(new Point2D(1.0280263328057737, 0.9613013677540136));
         kd.insert(new Point2D(0.5047449548290154, -0.3869185813785929));
-        Point2D nearest = kd.nearest(new Point2D(-0.33036709507768675, 0.6317533239316923));
-        Iterable<Point2D> set = kd.range(new RectHV(-0.34634662072206124, -0.017699115044247815 , -0.1869632182107709, 0.9410029498525073));
+//        Point2D nearest = kd.nearest(new Point2D(-0.33036709507768675, 0.6317533239316923));
+//        Iterable<Point2D> set = kd.range(new RectHV(-0.34634662072206124, -0.017699115044247815,
+//                                                    -0.1869632182107709,  0.9410029498525073));
     }
 
 }
