@@ -34,8 +34,8 @@ public class NearestNeighborVisualizer {
         }
 
 
-        double x = 0.024473;
-        double y = 0.505492;
+        double x = 0.21;
+        double y = 0.35;
         Point2D query = new Point2D(x, y);
 
         // draw all of the points
@@ -53,11 +53,11 @@ public class NearestNeighborVisualizer {
 
         // draw in blue the nearest neighbor (using kd-tree algorithm)
         StdDraw.setPenColor(StdDraw.BLUE);
+//        kdtree.draw();
         Point2D nearestKD = kdtree.nearest(query);
-//            kdtree.draw();
-        if (nearestKD != null) nearestKD.draw();
+        if (nearestKD != null)
+            nearestKD.draw();
         StdDraw.show(0);
         StdDraw.show(40);
     }
-//    }
 }

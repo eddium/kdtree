@@ -34,13 +34,19 @@ public class KdTree {
 
         int compareTo(RectHV that) {
             if (this.isVertical) {
-                if      (this.p.x() > that.xmax()) return 1;
-                else if (this.p.x() < that.xmin()) return -1;
-                else                               return 0;
+                if (this.p.x() > that.xmax())
+                    return 1;
+                else if (this.p.x() < that.xmin())
+                    return -1;
+                else
+                    return 0;
             } else {
-                if      (this.p.y() > that.ymax()) return 1;
-                else if (this.p.y() < that.ymin()) return -1;
-                else                               return 0;
+                if (this.p.y() > that.ymax())
+                    return 1;
+                else if (this.p.y() < that.ymin())
+                    return -1;
+                else
+                    return 0;
             }
         }
     }
@@ -50,7 +56,8 @@ public class KdTree {
 
     private Node root;
 
-    public KdTree() { }                           // construct an empty set of points
+    public KdTree() {
+    }                           // construct an empty set of points
 
     public boolean isEmpty()                      // is the set empty?
     {
@@ -71,15 +78,17 @@ public class KdTree {
     public void insert(Point2D p)              // add the point to the set (if it is not already in the set)
     {
         verify(p);
+        if (!contains(p)) N++;
         root = put(root, sentinel, p);
-        N++;
     }
 
     private Node put(Node x, Node parent, Point2D p) {
         if (x == null)
             return new Node(p, !parent.isVertical);
 
-        if (x.compareTo(p) > 0)
+        if (x.p.equals(p)) {
+            return x;
+        } else if (x.compareTo(p) > 0)
             x.lb = put(x.lb, x, p);
         else
             x.rt = put(x.rt, x, p);

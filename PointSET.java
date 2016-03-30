@@ -1,6 +1,5 @@
 import edu.princeton.cs.algs4.*;
 
-
 public class PointSET {
     private SET<Point2D> points;
 
@@ -47,16 +46,10 @@ public class PointSET {
     public Iterable<Point2D> range(RectHV rect)             // all points that are inside the rectangle
     {
         verify(rect);
-        Stack<Point2D> near = new Stack<Point2D>();
-        double xmin = rect.xmin();
-        double xmax = rect.xmax();
-        double ymin = rect.ymin();
-        double ymax = rect.ymax();
+        SET<Point2D> near = new SET<>();
         for (Point2D p : points) {
-            double px = p.x();
-            double py = p.y();
-            if (px >= xmin && px <= xmax && py >= ymin && py <= ymax)
-                near.push(p);
+            if (rect.contains(p))
+                near.add(p);
         }
         return near;
     }
@@ -64,14 +57,9 @@ public class PointSET {
     public Point2D nearest(Point2D p)             // a nearest neighbor in the set to point p; null if the set is empty
     {
         verify(p);
-        double width = 0.4;
-        double height = 0.3;
-        double xmin = Math.floor(p.x() / width) * width;
-        double ymin = Math.floor(p.y() / height) * height;
-        RectHV rect = new RectHV(xmin, ymin, xmin + width, ymin + height);
         double minDistanceSquared = Double.MAX_VALUE;
         Point2D champion = null;
-        for (Point2D k : range(rect)) {
+        for (Point2D k : points) {
             double distance = k.distanceSquaredTo(p);
             if (distance < minDistanceSquared) {
                 minDistanceSquared = distance;
@@ -81,8 +69,6 @@ public class PointSET {
         return champion;
     }
 
-    public static void main(String[] args)                  // unit testing of the methods (optional)
-    {
+    public static void main(String[] args) { }               // unit testing of the methods (optional)
 
-    }
 }
