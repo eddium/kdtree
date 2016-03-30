@@ -1,7 +1,11 @@
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.SET;
+import edu.princeton.cs.algs4.StdDraw;
+import edu.princeton.cs.algs4.Stack;
 
 public class PointSET {
-    SET<Point2D> points;
+    private SET<Point2D> points;
 
     public PointSET()                               // construct an empty set of points
     {

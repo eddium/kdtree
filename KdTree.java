@@ -139,18 +139,35 @@ public class KdTree {
     {
         verify(rect);
         SET<Point2D> set = new SET<>();
-
-
-
-
+        range(root, rect, set);
         return set;
     }
 
-    private void range(RectHV rect, SET<Point2D> set) {
+    private void range(Node x, RectHV rect, SET<Point2D> set) {
+        if (x == null) return;
 
+        if (hasInLB(x, rect))
+            range(x.lb, rect, set);
+        if (hasInRT(x, rect))
+            range(x.rt, rect, set);
+        if (lieInRect(x, rect))
+            set.add(x.p);
     }
 
 
+    private boolean hasInLB(Node x, RectHV rect) {
+        return x.isVertical && rect.xmin() < x.p.x() || !x.isVertical && rect.ymin() < x.p.y();
+    }
+
+    private boolean hasInRT(Node x, RectHV rect) {
+        return x.isVertical && rect.xmax() >= x.p.x() || !x.isVertical && rect.ymax() >= x.p.y();
+    }
+
+    private boolean lieInRect(Node x, RectHV rect) {
+        double px = x.p.x();
+        double py = x.p.y();
+        return px >= rect.xmin() &&  py>= rect.ymin() && px <= rect.xmax() && py <= rect.ymax();
+    }
 
     public Point2D nearest(Point2D p)                 // a nearest neighbor in the set to point p; null if the set is empty
     {
@@ -208,7 +225,7 @@ public class KdTree {
         kd.insert(new Point2D(1.0280263328057737, 0.9613013677540136));
         kd.insert(new Point2D(0.5047449548290154, -0.3869185813785929));
         Point2D nearest = kd.nearest(new Point2D(-0.33036709507768675, 0.6317533239316923));
-//        System.out.println(kd.contains(new Point2D(0.8, 0.1)));
+        Iterable<Point2D> set = kd.range(new RectHV(-0.34634662072206124, -0.017699115044247815 , -0.1869632182107709, 0.9410029498525073));
     }
 
 }
