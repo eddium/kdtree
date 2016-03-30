@@ -1,5 +1,6 @@
 import edu.princeton.cs.algs4.*;
 
+
 public class PointSET {
     private SET<Point2D> points;
 
@@ -77,7 +78,6 @@ public class PointSET {
                 champion = k;
             }
         }
-        BST a = new BST();
         return champion;
     }
 

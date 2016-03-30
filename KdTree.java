@@ -1,4 +1,7 @@
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.Point2D;
+import edu.princeton.cs.algs4.RectHV;
+import edu.princeton.cs.algs4.SET;
+import edu.princeton.cs.algs4.StdDraw;
 
 public class KdTree {
 
@@ -12,16 +15,42 @@ public class KdTree {
             this.p = p;
             this.isVertical = isVertical;
         }
+
+        //  return a positive number if Point should go to left or bottom, and vice versa.
+        int compareTo(Point2D that) {
+            double cmp;
+            if (this.isVertical)
+                cmp = this.p.x() - that.x();
+            else
+                cmp = this.p.y() - that.y();
+
+            if (cmp > 0)
+                return 1;
+            else if (cmp < 0)
+                return -1;
+            else
+                return 0;
+        }
+
+        int compareTo(RectHV that) {
+            if (this.isVertical) {
+                if      (this.p.x() > that.xmax()) return 1;
+                else if (this.p.x() < that.xmin()) return -1;
+                else                               return 0;
+            } else {
+                if      (this.p.y() > that.ymax()) return 1;
+                else if (this.p.y() < that.ymin()) return -1;
+                else                               return 0;
+            }
+        }
     }
 
     private int N;
-    private Node sentinel;
+    private Node sentinel = new Node(new Point2D(0.0, 0.0), false); //  sentinel is horizontal since root is vertical
+
     private Node root;
 
-    public KdTree()                               // construct an empty set of points
-    {
-        sentinel = new Node(new Point2D(0.0, 0.0), false); //  sentinel is horizontal since root is vertical
-    }
+    public KdTree() { }                           // construct an empty set of points
 
     public boolean isEmpty()                      // is the set empty?
     {
@@ -38,6 +67,7 @@ public class KdTree {
             throw new java.lang.NullPointerException();
     }
 
+
     public void insert(Point2D p)              // add the point to the set (if it is not already in the set)
     {
         verify(p);
@@ -49,20 +79,13 @@ public class KdTree {
         if (x == null)
             return new Node(p, !parent.isVertical);
 
-        double cmp;
-        if (x.isVertical)
-            cmp = x.p.x() - p.x();
-        else
-            cmp = x.p.y() - p.y();
-
-        if (cmp > 0)
+        if (x.compareTo(p) > 0)
             x.lb = put(x.lb, x, p);
         else
             x.rt = put(x.rt, x, p);
 
         return x;
     }
-
 
     public boolean contains(Point2D p)            // does the set contain point p?
     {
@@ -77,13 +100,7 @@ public class KdTree {
         if (x.p.equals(p))
             return x;
 
-        double cmp;
-        if (x.isVertical)
-            cmp = x.p.x() - p.x();
-        else
-            cmp = x.p.y() - p.y();
-
-        if (cmp > 0)
+        if (x.compareTo(p) > 0)
             return get(x.lb, p);
         else
             return get(x.rt, p);
@@ -98,34 +115,32 @@ public class KdTree {
     private void draw(Node x, RectHV zone) {
         if (x == null) return;
         if (x.isVertical) {
-            drawVerticalNode(x, zone);
+            drawNode(x, zone);
             draw(x.lb, new RectHV(zone.xmin(), zone.ymin(), x.p.x(), zone.ymax()));
             draw(x.rt, new RectHV(x.p.x(), zone.ymin(), zone.xmax(), zone.ymax()));
         } else {
-            drawHorizontalNode(x, zone);
+            drawNode(x, zone);
             draw(x.lb, new RectHV(zone.xmin(), zone.ymin(), zone.xmax(), x.p.y()));
             draw(x.rt, new RectHV(zone.xmin(), x.p.y(), zone.xmax(), zone.ymax()));
         }
     }
 
-
-    private void drawVerticalNode(Node x, RectHV range) {
-        StdDraw.setPenColor(StdDraw.RED);
+    private void drawNode(Node x, RectHV range) {
         StdDraw.setPenRadius(.001);
-        StdDraw.line(x.p.x(), range.ymin(), x.p.x(), range.ymax());
+
+        if (x.isVertical) {
+            StdDraw.setPenColor(StdDraw.RED);
+            StdDraw.line(x.p.x(), range.ymin(), x.p.x(), range.ymax());
+        } else {
+            StdDraw.setPenColor(StdDraw.BLUE);
+            StdDraw.line(range.xmin(), x.p.y(), range.xmax(), x.p.y());
+        }
+
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.setPenRadius(.01);
         x.p.draw();
     }
 
-    private void drawHorizontalNode(Node x, RectHV range) {
-        StdDraw.setPenColor(StdDraw.BLUE);
-        StdDraw.setPenRadius(.001);
-        StdDraw.line(range.xmin(), x.p.y(), range.xmax(), x.p.y());
-        StdDraw.setPenColor(StdDraw.BLACK);
-        StdDraw.setPenRadius(.01);
-        x.p.draw();
-    }
 
     public Iterable<Point2D> range(RectHV rect)             // all points that are inside the rectangle
     {
@@ -138,70 +153,53 @@ public class KdTree {
     private void range(Node x, RectHV rect, SET<Point2D> set) {
         if (x == null) return;
 
-        if (hasInLB(x, rect))
+        if (x.compareTo(rect) >= 0)
             range(x.lb, rect, set);
-        if (hasInRT(x, rect))
+        if (x.compareTo(rect) <= 0)
             range(x.rt, rect, set);
-        if (lieInRect(x, rect))
+        if (rect.contains(x.p))
             set.add(x.p);
     }
 
-
-    private boolean hasInLB(Node x, RectHV rect) {
-        return x.isVertical && rect.xmin() < x.p.x() || !x.isVertical && rect.ymin() < x.p.y();
-    }
-
-    private boolean hasInRT(Node x, RectHV rect) {
-        return x.isVertical && rect.xmax() >= x.p.x() || !x.isVertical && rect.ymax() >= x.p.y();
-    }
-
-    private boolean lieInRect(Node x, RectHV rect) {
-        double px = x.p.x();
-        double py = x.p.y();
-        return px >= rect.xmin() && py >= rect.ymin() && px <= rect.xmax() && py <= rect.ymax();
-    }
+    private double minDistance;
 
     public Point2D nearest(Point2D p)                 // a nearest neighbor in the set to point p; null if the set is empty
     {
         verify(p);
-        return nearest(root, p, new Point2D(Double.MAX_VALUE, Double.MAX_VALUE));  // nearest point is null before recursion
+        minDistance = Double.MAX_VALUE;
+        return nearest(root, p, null, new RectHV(0, 0, 1, 1));
     }
 
-    private Point2D nearest(Node x, Point2D p, Point2D champion) {
+    private Point2D nearest(Node x, Point2D p, Point2D champion, RectHV division) {
         if (x == null)
             return champion;
 
-        double minDistance = x.p.distanceSquaredTo(champion);
-        double distanceSquared = x.p.distanceSquaredTo(p);
-        if (distanceSquared < minDistance) {
-            minDistance = distanceSquared;
+        double distance = x.p.distanceSquaredTo(p);
+        if (distance < minDistance) {
+            minDistance = distance;
             champion = x.p;
         }
 
-        double cmp;
-        double thisX = x.p.x();
-        double thisY = x.p.y();
-        double queryX = p.x();
-        double queryY = p.y();
-        if (x.isVertical)
-            cmp = thisX - queryX;
-        else
-            cmp = thisY - queryY;
+        if (minDistance == 0)
+            return champion;
 
-        if (cmp > 0) {
-            champion = nearest(x.lb, p, champion);
-            //  pruning rule
-            if (x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(thisX, queryY))
-                    || !x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(queryX, thisY))) {
-                champion = nearest(x.rt, p, champion);
-            }
+        RectHV LB, RT;
+        if (x.isVertical) {
+            LB = new RectHV(division.xmin(), division.ymin(), x.p.x(), division.ymax());
+            RT = new RectHV(x.p.x(), division.ymin(), division.xmax(), division.ymax());
         } else {
-            champion = nearest(x.rt, p, champion);
-            //  pruning rule
-            if (x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(thisX, queryY))
-                    || !x.isVertical && minDistance > p.distanceSquaredTo(new Point2D(queryX, thisY))) {
-                champion = nearest(x.lb, p, champion);
-            }
+            LB = new RectHV(division.xmin(), division.ymin(), division.xmax(), x.p.y());
+            RT = new RectHV(division.xmin(), x.p.y(), division.xmax(), division.ymax());
+        }
+
+        if (x.compareTo(p) > 0) {
+            champion = nearest(x.lb, p, champion, LB);
+            if (RT.distanceSquaredTo(p) <= minDistance)
+                champion = nearest(x.rt, p, champion, RT);
+        } else {
+            champion = nearest(x.rt, p, champion, RT);
+            if (LB.distanceSquaredTo(p) <= minDistance)
+                champion = nearest(x.rt, p, champion, RT);
         }
 
         return champion;
@@ -210,7 +208,6 @@ public class KdTree {
     public static void main(String[] args)                  // unit testing of the methods (optional)
     {
         KdTree kd = new KdTree();
-
         kd.insert(new Point2D(0.27353848617158194, 0.3609799055319829));
         kd.insert(new Point2D(0.6289020402382021, 0.14183750762087155));
         kd.insert(new Point2D(0.003799658831281527, 0.565878201535875));
