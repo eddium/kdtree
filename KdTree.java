@@ -56,8 +56,7 @@ public class KdTree {
 
     private Node root;
 
-    public KdTree() {
-    }                           // construct an empty set of points
+    public KdTree() { }                           // construct an empty set of points
 
     public boolean isEmpty()                      // is the set empty?
     {
@@ -86,9 +85,9 @@ public class KdTree {
         if (x == null)
             return new Node(p, !parent.isVertical);
 
-        if (x.p.equals(p)) {
+        if (x.p.equals(p))
             return x;
-        } else if (x.compareTo(p) > 0)
+        else if (x.compareTo(p) > 0)
             x.lb = put(x.lb, x, p);
         else
             x.rt = put(x.rt, x, p);
@@ -150,7 +149,6 @@ public class KdTree {
         x.p.draw();
     }
 
-
     public Iterable<Point2D> range(RectHV rect)             // all points that are inside the rectangle
     {
         verify(rect);
@@ -160,12 +158,15 @@ public class KdTree {
     }
 
     private void range(Node x, RectHV rect, SET<Point2D> set) {
-        if (x == null) return;
+        if (x == null)
+            return;
 
         if (x.compareTo(rect) >= 0)
             range(x.lb, rect, set);
+
         if (x.compareTo(rect) <= 0)
             range(x.rt, rect, set);
+
         if (rect.contains(x.p))
             set.add(x.p);
     }
@@ -188,7 +189,6 @@ public class KdTree {
             minDistance = distance;
             champion = x.p;
         }
-
         if (minDistance == 0)
             return champion;
 
@@ -202,6 +202,7 @@ public class KdTree {
         }
 
         if (x.compareTo(p) > 0) {
+            //  pruning rule
             champion = nearest(x.lb, p, champion, LB);
             if (RT.distanceSquaredTo(p) <= minDistance)
                 champion = nearest(x.rt, p, champion, RT);
