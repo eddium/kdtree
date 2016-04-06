@@ -19,47 +19,43 @@ public class KdTreeST<Value> {
         private Value val;
         private boolean orientation;
 
+
+        //  returns a direction value perpendicular to the current node
         public boolean perpendicular() {
             return !orientation;
         }
 
-        Node(Point2D p, Value val, boolean orientation) {
+        public Node(Point2D p, Value val, boolean orientation) {
             this.p = p;
             this.val = val;
             this.orientation = orientation;
         }
 
-        //  return a positive number if Point should go to left or bottom, and vice versa.
-        int compareTo(Point2D that) {
+        //  returns a positive integer if this point on the right
+        //  or top of that point, and vice versa (0 if equal).
+        public int compareTo(Point2D that) {
             double cmp;
             if (this.orientation == VERTICAL)
                 cmp = this.p.x() - that.x();
             else
                 cmp = this.p.y() - that.y();
 
-            if (cmp > 0)
-                return 1;
-            else if (cmp < 0)
-                return -1;
-            else
-                return 0;
+            if      (cmp > 0) return  1;
+            else if (cmp < 0) return -1;
+            else              return  0;
         }
 
-        int compareTo(RectHV that) {
+        //  returns a positive integer if this point on the right
+        //  or top of that rectangle, and vice versa (0 if equal).
+        public int compareTo(RectHV that) {
             if (this.orientation == VERTICAL) {
-                if (this.p.x() > that.xmax())
-                    return 1;
-                else if (this.p.x() < that.xmin())
-                    return -1;
-                else
-                    return 0;
+                if      (this.p.x() > that.xmax()) return  1;
+                else if (this.p.x() < that.xmin()) return -1;
+                else                               return  0;
             } else {
-                if (this.p.y() > that.ymax())
-                    return 1;
-                else if (this.p.y() < that.ymin())
-                    return -1;
-                else
-                    return 0;
+                if      (this.p.y() > that.ymax()) return  1;
+                else if (this.p.y() < that.ymin()) return -1;
+                else                               return  0;
             }
         }
     }
@@ -70,7 +66,7 @@ public class KdTreeST<Value> {
      */
     public KdTreeST() {
         // sentinel is horizontal since root is vertical
-        sentinel = new Node(new Point2D(0.0, 0.0), null, false);
+        sentinel = new Node(new Point2D(0.0, 0.0), null, HORIZONTAL);
     }
 
 
@@ -94,10 +90,16 @@ public class KdTreeST<Value> {
     }
 
 
+    //  throws a NullPointerException if parameter is null
     private void verify(Object o) {
         if (o == null)
             throw new java.lang.NullPointerException();
     }
+
+
+    /***************************************************************************
+     *  Kd-tree insertion.
+     ***************************************************************************/
 
     /**
      * Inserts the specified point-value pair into the symbol table, overwriting the old
@@ -119,30 +121,17 @@ public class KdTreeST<Value> {
         if (x == null)
             return new Node(p, val, parent.perpendicular());
 
-        if (x.p.equals(p))
-            x.val = val;
-        else if (x.compareTo(p) > 0)
-            x.lb = put(x.lb, x, p, val);
-        else
-            x.rt = put(x.rt, x, p, val);
+        if      (x.p.equals(p))      x.val = val;
+        else if (x.compareTo(p) > 0) x.lb = put(x.lb, x, p, val);
+        else                         x.rt = put(x.rt, x, p, val);
 
         return x;
     }
 
 
-    /**
-     * Does this symbol table contain the given point?
-     * @param p the point
-     * @return <tt>true</tt> if this symbol table contains <tt>point</tt> and
-     *     <tt>false</tt> otherwise
-     * @throws NullPointerException if <tt>p</tt> is <tt>null</tt>
-     */
-    public boolean contains(Point2D p)            // does the set contain point p?
-    {
-        verify(p);
-        return get(root, p) != null;
-    }
-
+    /***************************************************************************
+     *  Kd-tree search.
+     ***************************************************************************/
 
     /**
      * Returns the value associated with the given point.
@@ -164,10 +153,22 @@ public class KdTreeST<Value> {
         if (x.p.equals(p))
             return x;
 
-        if (x.compareTo(p) > 0)
-            return get(x.lb, p);
-        else
-            return get(x.rt, p);
+        if (x.compareTo(p) > 0) return get(x.lb, p);
+        else                    return get(x.rt, p);
+    }
+
+
+    /**
+     * Does this symbol table contain the given point?
+     * @param p the point
+     * @return <tt>true</tt> if this symbol table contains <tt>point</tt> and
+     *     <tt>false</tt> otherwise
+     * @throws NullPointerException if <tt>p</tt> is <tt>null</tt>
+     */
+    public boolean contains(Point2D p)            // does the set contain point p?
+    {
+        verify(p);
+        return get(root, p) != null;
     }
 
 
@@ -176,8 +177,8 @@ public class KdTreeST<Value> {
      ***************************************************************************/
 
     /**
-     * Returns all points inside the rectangle.
-     * @return all keys inside the rectangle <tt>rect</tt> as
+     * Returns all points that are inside the rectangle.
+     * @return all keys that are inside the rectangle <tt>rect</tt> as
      * an <tt>Iterable</tt>
      * @throws NullPointerException if <tt>rect</tt> is <tt>null</tt>
      */
@@ -189,34 +190,28 @@ public class KdTreeST<Value> {
         return set;
     }
 
-    // add the points inside the rect in the subtree rooted at x
-    // to the set recursively
+    //  add the points in the division of a subtree rooted at x
+    //  to a set recursively
     private void range(Node x, RectHV rect, SET<Point2D> set) {
-        if (x == null)
-            return;
+        if (x == null) return;
 
-        if (x.compareTo(rect) >= 0)
-            range(x.lb, rect, set);
-
-        if (x.compareTo(rect) <= 0)
-            range(x.rt, rect, set);
-
-        if (rect.contains(x.p))
-            set.add(x.p);
+        if (x.compareTo(rect) >= 0) range(x.lb, rect, set);
+        if (x.compareTo(rect) <= 0) range(x.rt, rect, set);
+        if (rect.contains(x.p))     set.add(x.p);
     }
-
 
 
     /***************************************************************************
      *  Nearest neighbor search
      ***************************************************************************/
 
+    private double minDistance;
+
     /**
      * Returns a nearest neighbor in the symbol table to point p
      * @return a nearest neighbor in the symbol table to point <tt>p</tt>
      * @throws NullPointerException if <tt>p</tt> is <tt>null</tt>
      */
-    private double minDistance;
     public Point2D nearest(Point2D p)
     {
         verify(p);
@@ -224,7 +219,8 @@ public class KdTreeST<Value> {
         return nearest(root, p, null, new RectHV(0, 0, 1, 1));
     }
 
-    //
+    //  returns the nearest point in the division of subtree rooted at x
+    //  which is closer than the champion to the query point p
     private Point2D nearest(Node x, Point2D p, Point2D champion, RectHV division) {
         if (x == null)
             return champion;
@@ -246,8 +242,10 @@ public class KdTreeST<Value> {
             RT = new RectHV(division.xmin(), x.p.y(), division.xmax(), division.ymax());
         }
 
+        //  Pruning rule: if the closest point discovered so far is closer than the
+        //  distance between the query point and the rectangle corresponding to a node,
+        //  there is no need to explore that node or its subtrees.
         if (x.compareTo(p) > 0) {
-            //  pruning rule
             champion = nearest(x.lb, p, champion, LB);
             if (RT.distanceSquaredTo(p) <= minDistance)
                 champion = nearest(x.rt, p, champion, RT);
@@ -261,7 +259,9 @@ public class KdTreeST<Value> {
     }
 
 
-    // Unit Testing
+    /**
+     * Unit testing
+     */
     public static void main(String[] args)
     {
         KdTreeST<Integer> kd = new KdTreeST<>();
@@ -279,5 +279,4 @@ public class KdTreeST<Value> {
         Iterable<Point2D> set = kd.range(new RectHV(-0.34634662072206124, -0.017699115044247815,
                                                     -0.1869632182107709,  0.9410029498525073));
     }
-
 }
