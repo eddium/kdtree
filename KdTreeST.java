@@ -8,8 +8,8 @@ public class KdTreeST<Value> {
     public static final boolean HORIZONTAL = false;
 
     private int N;
-    private Node sentinel;
-    private Node root;
+    private Node sentinel, root;
+    private RectHV boundary;    // outer boundry of the points set
 
     //  KdTreeST helper node data type
     private class Node {
@@ -18,7 +18,6 @@ public class KdTreeST<Value> {
         private Node rt;        // the right/top subtree
         private Value val;
         private boolean orientation;
-
 
         //  returns a direction value perpendicular to the current node
         public boolean perpendicular() {
@@ -62,11 +61,28 @@ public class KdTreeST<Value> {
 
 
     /**
-     * Construct an empty set of points
+     * Construct an empty set of points in the unit square
+     * (all points have x- and y-coordinates between 0 and 1)
      */
     public KdTreeST() {
         // sentinel is horizontal since root is vertical
         sentinel = new Node(new Point2D(0.0, 0.0), null, HORIZONTAL);
+        boundary = new RectHV(0, 0, 1, 1);
+    }
+
+
+    /**
+     * Construct an empty set of points in the given rectangle
+     * [<em>xmin</em>, <em>xmax</em>] x [<em>ymin</em>, <em>ymax</em>]
+     *
+     * @param  xmin the <em>x</em>-coordinate of the lower-left endpoint
+     * @param  xmax the <em>x</em>-coordinate of the upper-right endpoint
+     * @param  ymin the <em>y</em>-coordinate of the lower-left endpoint
+     * @param  ymax the <em>y</em>-coordinate of the upper-right endpoint
+     */
+    public KdTreeST(double xmin, double ymin, double xmax, double ymax) {
+        sentinel = new Node(new Point2D(0.0, 0.0), null, HORIZONTAL);
+        boundary = new RectHV(xmin, ymin, xmax, ymax);
     }
 
 
@@ -216,7 +232,7 @@ public class KdTreeST<Value> {
     {
         verify(p);
         minDistance = Double.MAX_VALUE;
-        return nearest(root, p, null, new RectHV(0, 0, 1, 1));
+        return nearest(root, p, null, boundary);
     }
 
     //  returns the nearest point in the division of subtree rooted at x
